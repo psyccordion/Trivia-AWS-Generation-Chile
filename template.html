@@ -1,0 +1,160 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWS DEA-C01 Trivia</title>
+  <style>
+    :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0; --primary:#ff9900; --primary-dark:#e38800; --ok:#16a34a; --ok-bg:#dcfce7; --bad:#dc2626; --bad-bg:#fee2e2; --header:#232f3e; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Segoe UI, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    .container { max-width:980px; margin:24px auto; padding:0 16px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:0 10px 24px rgba(15,23,42,.08); overflow:hidden; }
+    .hero { background:var(--header); color:#fff; padding:24px; text-align:center; }
+    .hero p { color:#cbd5e1; }
+    .body { padding:20px; }
+    .topics { display:grid; grid-template-columns:repeat(auto-fit, minmax(270px,1fr)); gap:10px; }
+    .topic { border:2px solid var(--line); border-radius:12px; padding:12px; background:#fff; cursor:pointer; display:flex; justify-content:space-between; }
+    .topic.active { border-color:var(--primary); background:#fff7ed; }
+    .topic.disabled { opacity:.45; cursor:not-allowed; }
+    .btn { border:0; background:var(--primary); color:#fff; font-weight:700; padding:12px 16px; border-radius:12px; cursor:pointer; }
+    .btn:hover { background:var(--primary-dark); }
+    .btn.secondary { background:#334155; }
+    .btn.secondary:hover { background:#1e293b; }
+    .row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .muted { color:var(--muted); }
+    .question { font-size:22px; font-weight:700; line-height:1.3; margin:12px 0 16px; }
+    .answers { display:grid; gap:10px; }
+    .answer { border:2px solid var(--line); border-radius:12px; background:#fff; padding:14px; width:100%; text-align:left; cursor:pointer; }
+    .answer:hover { border-color:#fdba74; background:#fff7ed; }
+    .answer.ok { border-color:var(--ok); background:var(--ok-bg); }
+    .answer.bad { border-color:var(--bad); background:var(--bad-bg); }
+    .box { margin-top:14px; border:1px solid var(--line); border-radius:12px; padding:12px; background:#f8fafc; }
+    .progress { height:8px; width:200px; border-radius:999px; overflow:hidden; background:#e2e8f0; margin-top:6px; }
+    .progress>div { height:100%; background:var(--primary); }
+    .result { text-align:center; padding:28px; }
+    .stats { margin:16px 0; display:grid; grid-template-columns:repeat(2,minmax(120px,1fr)); gap:10px; }
+    .stat { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card" id="menuView">
+      <div class="hero">
+        <h1>AWS Data Engineer Pro</h1>
+        <p>Simulador DEA-C01 (HTML offline para Chrome)</p>
+      </div>
+      <div class="body">
+        <h3>Selecciona topicos</h3>
+        <div class="topics" id="topics"></div>
+        <div style="margin-top:16px;"><button class="btn" id="startBtn">Iniciar simulacion</button></div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="quizView">
+      <div class="body">
+        <div class="row">
+          <div>
+            <div class="muted" id="progressText"></div>
+            <div class="progress"><div id="progressBar"></div></div>
+          </div>
+          <div><strong id="cleanScore">0</strong> aciertos a la primera</div>
+        </div>
+        <div class="muted" style="margin-top:12px;" id="topicName"></div>
+        <div class="question" id="questionText"></div>
+        <div class="answers" id="answers"></div>
+        <div class="box hidden" id="hintBox"></div>
+        <div class="box hidden" id="explainBox"></div>
+        <div style="margin-top:14px;" class="row">
+          <div class="muted" id="actionHelp">Selecciona una respuesta para continuar...</div>
+          <button class="btn secondary hidden" id="nextBtn">Siguiente</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="resultView">
+      <div class="result">
+        <h2 id="resultTitle"></h2>
+        <div class="muted">Resultado final de la simulacion DEA-C01</div>
+        <div class="stats">
+          <div class="stat"><div class="muted">Efectividad</div><div id="resultPct" style="font-size:28px;font-weight:900;"></div></div>
+          <div class="stat"><div class="muted">Aciertos limpios</div><div id="resultScore" style="font-size:28px;font-weight:900;"></div></div>
+        </div>
+        <p id="resultMsg"></p>
+        <button class="btn secondary" id="restartBtn">Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOPICS = [
+      { id: 0, name: "0. Introduccion", icon: "T0" },
+      { id: 1, name: "1. Data Ingestion and Transformation", icon: "T1" },
+      { id: 2, name: "2. Data Store Management", icon: "T2" },
+      { id: 3, name: "3. Data Operations and Support", icon: "T3" },
+      { id: 4, name: "4. Data Security and Governance", icon: "T4" },
+      { id: 5, name: "5. In-Scope / Out-of-Scope Services", icon: "T5" }
+    ];
+
+    const QUESTIONS_DATABASE = __QUESTIONS_ARRAY__;
+
+    const state = { view:"menu", selectedTopics:new Set([0,1,2]), quizQuestions:[], currentIndex:0, firstTryScore:0, selectedOption:null, isAnswered:false, attempts:0 };
+    const el = {
+      menuView:document.getElementById("menuView"), quizView:document.getElementById("quizView"), resultView:document.getElementById("resultView"),
+      topics:document.getElementById("topics"), startBtn:document.getElementById("startBtn"), progressText:document.getElementById("progressText"),
+      progressBar:document.getElementById("progressBar"), cleanScore:document.getElementById("cleanScore"), topicName:document.getElementById("topicName"),
+      questionText:document.getElementById("questionText"), answers:document.getElementById("answers"), hintBox:document.getElementById("hintBox"),
+      explainBox:document.getElementById("explainBox"), nextBtn:document.getElementById("nextBtn"), actionHelp:document.getElementById("actionHelp"),
+      resultTitle:document.getElementById("resultTitle"), resultPct:document.getElementById("resultPct"), resultScore:document.getElementById("resultScore"),
+      resultMsg:document.getElementById("resultMsg"), restartBtn:document.getElementById("restartBtn")
+    };
+
+    function shuffle(arr){ const out=[...arr]; for(let i=out.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [out[i],out[j]]=[out[j],out[i]]; } return out; }
+    function getTopicCount(id){ return QUESTIONS_DATABASE.filter(q=>q.topic===id).length; }
+    function resetQuestionState(){ state.selectedOption=null; state.isAnswered=false; state.attempts=0; }
+
+    function renderTopics(){
+      el.topics.innerHTML="";
+      TOPICS.forEach(t=>{
+        const count=getTopicCount(t.id), active=state.selectedTopics.has(t.id);
+        const btn=document.createElement("button"); btn.className="topic"+(active?" active":"")+(count===0?" disabled":""); btn.type="button"; btn.disabled=count===0;
+        btn.innerHTML=`<div><div><strong>${t.icon} ${t.name}</strong></div><div class="muted" style="font-size:12px;margin-top:4px;">${count} preguntas ${count===0?"(Proximamente)":""}</div></div><div>${active?"OK":""}</div>`;
+        btn.addEventListener("click",()=>{ if(state.selectedTopics.has(t.id)){ if(state.selectedTopics.size>1) state.selectedTopics.delete(t.id);} else {state.selectedTopics.add(t.id);} renderTopics(); });
+        el.topics.appendChild(btn);
+      });
+    }
+
+    function startQuiz(){
+      const selected=QUESTIONS_DATABASE.filter(q=>state.selectedTopics.has(q.topic));
+      if(!selected.length){ alert("No hay preguntas disponibles para los topicos seleccionados."); return; }
+      state.quizQuestions=shuffle(selected).map(q=>({...q, options:shuffle(q.options)}));
+      state.currentIndex=0; state.firstTryScore=0; resetQuestionState(); state.view="quiz"; render();
+    }
+
+    function getCurrentQ(){ return state.quizQuestions[state.currentIndex]; }
+    function onAnswer(option){ const q=getCurrentQ(); if(!q) return; if(state.isAnswered && state.selectedOption===q.answer) return; state.selectedOption=option; if(option===q.answer){ state.isAnswered=true; if(state.attempts===0) state.firstTryScore+=1; } else { state.attempts+=1; } renderQuiz(); }
+    function nextQuestion(){ if(state.currentIndex+1<state.quizQuestions.length){ state.currentIndex+=1; resetQuestionState(); renderQuiz(); } else { state.view="result"; render(); } }
+
+    function renderQuiz(){
+      const q=getCurrentQ(); if(!q) return; const topic=TOPICS.find(t=>t.id===q.topic); const total=state.quizQuestions.length; const pct=((state.currentIndex+1)/total)*100;
+      el.progressText.textContent=`Pregunta ${state.currentIndex+1} de ${total}`; el.progressBar.style.width=`${pct}%`; el.cleanScore.textContent=String(state.firstTryScore); el.topicName.textContent=topic?`${topic.icon} ${topic.name}`:""; el.questionText.textContent=q.question;
+      el.answers.innerHTML="";
+      q.options.forEach(opt=>{ const b=document.createElement("button"); b.type="button"; b.className="answer"; b.textContent=opt; if(state.selectedOption===opt){ b.classList.add(opt===q.answer?"ok":"bad"); } else if(state.isAnswered && opt===q.answer){ b.classList.add("ok"); } b.disabled=state.isAnswered && state.selectedOption===q.answer; b.addEventListener("click",()=>onAnswer(opt)); el.answers.appendChild(b); });
+      if(state.attempts>0 && !state.isAnswered){ el.hintBox.classList.remove("hidden"); el.hintBox.innerHTML=`<strong>Pista:</strong> ${q.hint}`; } else { el.hintBox.classList.add("hidden"); }
+      if(state.isAnswered){ el.explainBox.classList.remove("hidden"); el.explainBox.innerHTML=`<strong>Explicacion:</strong> ${q.explanation}`; el.nextBtn.classList.remove("hidden"); el.actionHelp.classList.add("hidden"); el.nextBtn.textContent=state.currentIndex+1===total?"Ver resultados":"Siguiente"; } else { el.explainBox.classList.add("hidden"); el.nextBtn.classList.add("hidden"); el.actionHelp.classList.remove("hidden"); }
+    }
+
+    function renderResult(){
+      const total=state.quizQuestions.length; const pct=total?(state.firstTryScore/total)*100:0; const passed=pct>=72;
+      el.resultTitle.textContent=passed?"Candidato Aprobado":"Sigue practicando"; el.resultTitle.style.color=passed?"#15803d":"#b91c1c";
+      el.resultPct.textContent=`${pct.toFixed(0)}%`; el.resultScore.textContent=`${state.firstTryScore}/${total}`;
+      el.resultMsg.textContent=passed?"Superaste el umbral del 72% con respuestas directas.":"Necesitas 72% para aprobar. Repasa y vuelve a intentarlo.";
+    }
+
+    function render(){ el.menuView.classList.toggle("hidden",state.view!=="menu"); el.quizView.classList.toggle("hidden",state.view!=="quiz"); el.resultView.classList.toggle("hidden",state.view!=="result"); if(state.view==="menu") renderTopics(); if(state.view==="quiz") renderQuiz(); if(state.view==="result") renderResult(); }
+    el.startBtn.addEventListener("click",startQuiz); el.nextBtn.addEventListener("click",nextQuestion); el.restartBtn.addEventListener("click",()=>{ state.view="menu"; render(); });
+    render();
+  </script>
+</body>
+</html>

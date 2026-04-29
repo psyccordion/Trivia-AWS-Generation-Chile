@@ -1,0 +1,687 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trivia AWS - Generation Chile</title>
+  <style>
+    :root {
+      --bg: #f3f7f9;
+      --card: #ffffff;
+      --text: #0b2139;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary-blue: #7dd3fc;
+      --primary-dark: #0f172a;
+      --ok: #16a34a;
+      --ok-bg: #dcfce7;
+      --bad: #dc2626;
+      --bad-bg: #fee2e2;
+      --accent: #1d4ed8;
+    }
+
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      background: var(--bg); 
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+
+    /* Estilo Logo Generation */
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .logo-gen {
+      color: #0077c8;
+      font-weight: 800;
+      font-size: 24px;
+      font-style: italic;
+      letter-spacing: -1px;
+    }
+    .logo-divider {
+      width: 2px;
+      height: 30px;
+      background: #cbd5e1;
+    }
+    .logo-text {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #1e293b;
+      line-height: 1.2;
+    }
+    .logo-text span {
+      display: block;
+      color: #64748b;
+      font-weight: 400;
+      text-transform: none;
+    }
+
+    h1.main-title {
+      font-size: 56px;
+      font-weight: 900;
+      margin: 0 0 16px 0;
+      letter-spacing: -2px;
+      color: #0f172a;
+    }
+    .main-subtitle {
+      font-size: 18px;
+      color: #475569;
+      max-width: 800px;
+      margin-bottom: 40px;
+    }
+
+    /* Cards */
+    .card { background: transparent; border: none; }
+    .white-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      margin-bottom: 40px;
+    }
+
+    /* MegaTrivia Highlight Card */
+    .mega-card {
+      border: 1px solid var(--line);
+    }
+    .mega-card h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+    }
+    .mega-card p {
+      color: var(--muted);
+      margin: 0 0 16px 0;
+    }
+    .pool-status {
+      color: #38bdf8;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* Section Headers */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 48px 0 24px 0;
+    }
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 24px;
+      background: var(--primary-dark);
+      border-radius: 2px;
+    }
+
+    /* Grid layout for subjects */
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+    
+    .subject-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .subject-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .subject-item.selected {
+      background: #e0f2fe; /* Azul claro de fondo */
+      border: 2px solid var(--accent); /* Borde más grueso y oscuro */
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.15); /* Sombra para dar profundidad */
+      transform: scale(1.02); /* Crece ligeramente */
+    }
+    .subject-item .label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .subject-item .title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .subject-item .count {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .subject-item.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+
+    /* Buttons */
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-mega {
+      background: var(--primary-blue);
+      color: #000;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0px #000;
+    }
+    .btn-mega:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #000;
+    }
+    .btn-mega:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #000;
+    }
+    .btn-mega:disabled {
+      background: #cbd5e1;
+      box-shadow: none;
+      border-color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .btn.primary { background: var(--primary-dark); color: #fff; }
+    .btn.secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--line); }
+    .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+    /* Quiz specific styles */
+    .question-box { background: white; padding: 40px; border-radius: 20px; border: 1px solid var(--line); }
+    .question-text { font-size: 24px; font-weight: 800; margin-bottom: 32px; }
+    .answers-grid { display: grid; gap: 12px; }
+    .answer-opt {
+      padding: 18px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .answer-opt:hover:not(:disabled) { border-color: var(--primary-blue); background: #f0f9ff; }
+    .answer-opt.ok { border-color: var(--ok); background: var(--ok-bg); }
+    .answer-opt.bad { border-color: var(--bad); background: var(--bad-bg); }
+
+    .hidden { display: none; }
+    .progress-bar-container { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+
+    .count-chip {
+      background: #fff;
+      border: 1px solid var(--line);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .count-chip.active {
+      background: var(--primary-dark);
+      color: #fff;
+      border-color: var(--primary-dark);
+    }
+
+    /* Results */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin: 32px 0; }
+    .stat-card { background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid var(--line); }
+    .stat-val { font-size: 32px; font-weight: 900; }
+    
+    table.tb { width: 100%; border-collapse: collapse; }
+    table.tb th { text-align: left; padding: 12px; font-size: 12px; color: var(--muted); border-bottom: 2px solid var(--line); }
+    table.tb td { padding: 16px 12px; border-bottom: 1px solid var(--line); }
+
+    .badge { padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+    .badge.ok { background: var(--ok-bg); color: #166534; }
+    .badge.no { background: var(--bad-bg); color: #991b1b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Home / Subject View -->
+    <div id="subjectView">
+      <div class="header-logo">
+        <img src="https://chile.generation.org/wp-content/uploads/2023/02/Generation_Chile_logo_BLUE_v2.svg" alt="Generation Logo" class="custom-logo">
+        <div class="logo-divider"></div>
+        <div class="logo-text">COHORTE 8<span>Cloud AWS re/Start</span></div>
+      </div>
+      
+      <h1 class="main-title">Trivia AWS</h1>
+      <p class="main-subtitle">Pon a prueba tu dominio técnico y mentalidad de crecimiento. Esta simulación integra todos los conocimientos del programa para asegurar que estés listx para los retos reales Cloud.</p>
+
+      <div class="white-card mega-card">
+        <h2>MegaTrivia Bootcamp</h2>
+        <p>Mide tus avances y prepárate para conectar con el mundo laboral</p>
+        <div class="pool-status" id="homeScanLine">Cargando catálogo...</div>
+        <button type="button" class="btn btn-mega" id="megaSetupBtn">¡Iniciar MegaTrivia!</button>
+      </div>
+
+      <div class="section-title">Categorías de Certificación</div>
+      <div class="grid" id="subjectList"></div>
+    </div>
+
+    <!-- MegaTrivia Config View -->
+    <div class="white-card hidden" id="megaView">
+      <div class="header-logo">
+        <img src="https://chile.generation.org/wp-content/uploads/2023/02/Generation_Chile_logo_BLUE_v2.svg" alt="Generation Logo" class="custom-logo">
+
+        <div class="logo-divider"></div>
+        <div class="logo-text">MegaTrivia<span>Configuración</span></div>
+      </div>
+      <h2>Configura tu Sesión</h2>
+      <p class="muted" id="megaScanLine"></p>
+      
+      <h3 style="margin-top:32px">¿Cuántas preguntas deseas?</h3>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 32px;" id="megaCountRow"></div>
+      
+      <div style="display: flex; gap: 12px;">
+        <button type="button" class="btn ghost" id="megaBackBtn">Volver</button>
+        <button type="button" class="btn primary" id="megaStartBtn">Comenzar Ahora</button>
+      </div>
+    </div>
+
+    <!-- Topics View -->
+    <div class="white-card hidden" id="topicView">
+      <div class="header-logo">
+        <img src="https://chile.generation.org/wp-content/uploads/2023/02/Generation_Chile_logo_BLUE_v2.svg" alt="Generation Logo" class="custom-logo">
+
+        <div class="logo-divider"></div>
+        <div class="logo-text" id="topicTitle">Materia</div>
+      </div>
+      <p id="topicSubtitle">Selecciona los tópicos a evaluar</p>
+      
+      <div class="grid" id="topicList" style="margin: 24px 0;"></div>
+      
+      <h3>Tamaño de la trivia</h3>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 32px;" id="topicCountRow"></div>
+      
+      <div style="display: flex; gap: 12px;">
+        <button class="btn ghost" id="backToSubjectsBtn">Volver</button>
+        <button class="btn primary" id="startQuizBtn">Iniciar Trivia</button>
+      </div>
+    </div>
+
+    <!-- Quiz View -->
+    <div class="hidden" id="quizView">
+      <div class="question-box">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+          <span class="muted" id="progressText"></span>
+          <span class="muted"><strong id="scoreText">0</strong> correctas</span>
+        </div>
+        <div class="progress-bar-container"><div class="progress-fill" id="progressBar"></div></div>
+        
+        <div class="pool-status" id="quizTopic" style="margin-bottom: 8px; text-transform: uppercase;"></div>
+        <div class="question-text" id="questionText"></div>
+        
+        <div class="answers-grid" id="answers"></div>
+
+        <div id="feedbackArea" style="margin-top: 24px;">
+            <div class="white-card hidden" id="hintBox" style="background:#f0f9ff; border: 1px solid #bae6fd; margin-bottom: 12px;"></div>
+            <div class="white-card hidden" id="explainBox" style="background:#f8fafc; border: 1px solid var(--line);"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px;">
+          <div class="muted" id="quizHelp">Selecciona una respuesta para continuar.</div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn ghost" id="homeBtn">Salir</button>
+            <button class="btn primary hidden" id="nextBtn">Siguiente Pregunta</button>
+            <button class="btn secondary" id="finishQuizBtn">Finalizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results View -->
+    <div class="white-card hidden" id="resultView">
+      <div style="text-align:center; margin-bottom: 40px;">
+        <span id="resultBadge" class="badge"></span>
+        <h2 id="resultTitle" style="font-size: 36px; margin: 16px 0 8px;"></h2>
+        <p class="muted" id="resultSubtitle"></p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="muted">Correctas</div><div class="stat-val" style="color: var(--ok)" id="resultCorrect"></div></div>
+        <div class="stat-card"><div class="muted">Incorrectas</div><div class="stat-val" style="color: var(--bad)" id="resultWrong"></div></div>
+        <div class="stat-card"><div class="muted">Efectividad</div><div class="stat-val" id="resultPct"></div></div>
+      </div>
+
+      <div style="margin-bottom: 40px;">
+        <h3 style="font-size: 14px; text-transform: uppercase; margin-bottom: 12px;">Desglose por Tema</h3>
+        <table class="tb">
+          <thead><tr><th>Tema</th><th>Correctas</th><th>Total</th><th>%</th></tr></thead>
+          <tbody id="topicTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 16px;">
+        <button class="btn ghost" id="resultHomeBtn">Ir al Inicio</button>
+        <button class="btn primary" id="resultRestartBtn">Reintentar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./data-editable.js"></script>
+  <script src="./preguntas-extra-1.js"></script>
+  <script>
+    // Se mantiene EXACTAMENTE la misma lógica del archivo original para no romper funcionalidades
+    const data = window.TRIVIA_DATA || { subjects: [], topics: [], questions: [], passPercent: 70 };
+    const COUNT_OPTIONS = [13, 26, 39, 52, 65];
+
+    const state = {
+      view: 'subjects',
+      quizMode: 'subject',
+      targetCount: COUNT_OPTIONS[0],
+      selectedSubjectId: null,
+      selectedTopicIds: new Set(),
+      quizQuestions: [],
+      outcomes: [],
+      attempted: [],
+      currentIndex: 0,
+      correctCount: 0,
+      selectedOption: null,
+      answered: false,
+      lastFilteredQuestions: [],
+      lastTopicOrder: []
+    };
+
+    const el = {
+      subjectView: document.getElementById('subjectView'),
+      megaView: document.getElementById('megaView'),
+      topicView: document.getElementById('topicView'),
+      quizView: document.getElementById('quizView'),
+      resultView: document.getElementById('resultView'),
+      homeScanLine: document.getElementById('homeScanLine'),
+      megaSetupBtn: document.getElementById('megaSetupBtn'),
+      megaScanLine: document.getElementById('megaScanLine'),
+      megaCountRow: document.getElementById('megaCountRow'),
+      megaBackBtn: document.getElementById('megaBackBtn'),
+      megaStartBtn: document.getElementById('megaStartBtn'),
+      subjectList: document.getElementById('subjectList'),
+      topicList: document.getElementById('topicList'),
+      topicCountRow: document.getElementById('topicCountRow'),
+      topicTitle: document.getElementById('topicTitle'),
+      topicSubtitle: document.getElementById('topicSubtitle'),
+      backToSubjectsBtn: document.getElementById('backToSubjectsBtn'),
+      startQuizBtn: document.getElementById('startQuizBtn'),
+      progressText: document.getElementById('progressText'),
+      progressBar: document.getElementById('progressBar'),
+      scoreText: document.getElementById('scoreText'),
+      quizTopic: document.getElementById('quizTopic'),
+      questionText: document.getElementById('questionText'),
+      answers: document.getElementById('answers'),
+      hintBox: document.getElementById('hintBox'),
+      explainBox: document.getElementById('explainBox'),
+      quizHelp: document.getElementById('quizHelp'),
+      nextBtn: document.getElementById('nextBtn'),
+      homeBtn: document.getElementById('homeBtn'),
+      resultBadge: document.getElementById('resultBadge'),
+      resultTitle: document.getElementById('resultTitle'),
+      resultSubtitle: document.getElementById('resultSubtitle'),
+      resultCorrect: document.getElementById('resultCorrect'),
+      resultWrong: document.getElementById('resultWrong'),
+      resultPct: document.getElementById('resultPct'),
+      topicTableBody: document.getElementById('topicTableBody'),
+      resultHomeBtn: document.getElementById('resultHomeBtn'),
+      resultRestartBtn: document.getElementById('resultRestartBtn'),
+      finishQuizBtn: document.getElementById('finishQuizBtn')
+    };
+
+    function shuffle(arr) {
+      const out = [...arr];
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    }
+
+    function show(view) {
+      state.view = view;
+      el.subjectView.classList.toggle('hidden', view !== 'subjects');
+      el.megaView.classList.toggle('hidden', view !== 'mega');
+      el.topicView.classList.toggle('hidden', view !== 'topics');
+      el.quizView.classList.toggle('hidden', view !== 'quiz');
+      el.resultView.classList.toggle('hidden', view !== 'result');
+      window.scrollTo(0,0);
+    }
+
+    function scanCatalog() {
+      const subjects = data.subjects.filter(s => s.active !== false);
+      const subIds = new Set(subjects.map(s => s.id));
+      const topics = data.topics.filter(t => t.active !== false && subIds.has(t.subjectId));
+      const topicIds = new Set(topics.map(t => t.id));
+      const pool = data.questions.filter(q => subIds.has(q.subjectId) && topicIds.has(q.topicId));
+      return { subjectCount: subjects.length, topicCount: topics.length, questionCount: pool.length, subjects, topics, pool };
+    }
+
+    function getAllQuestionsPool() { return scanCatalog().pool.map(q => ({ ...q })); }
+
+    function renderCountRow(container, maxAvailable) {
+      container.innerHTML = '';
+      if (maxAvailable <= 0) { container.innerHTML = '<span class="muted">No hay preguntas.</span>'; return; }
+      
+      const options = maxAvailable < COUNT_OPTIONS[0] ? [maxAvailable] : COUNT_OPTIONS.filter(n => n <= maxAvailable);
+      if (!options.includes(state.targetCount)) state.targetCount = options[0];
+
+      options.forEach(n => {
+        const btn = document.createElement('button');
+        btn.className = 'count-chip' + (state.targetCount === n ? ' active' : '');
+        btn.textContent = String(n);
+        btn.addEventListener('click', () => {
+          state.targetCount = n;
+          Array.from(container.querySelectorAll('.count-chip')).forEach(b => b.classList.toggle('active', Number(b.textContent) === n));
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function renderSubjects() {
+      show('subjects');
+      const scan = scanCatalog();
+      el.homeScanLine.textContent = `Pool activo: ${scan.questionCount} preguntas sincronizadas.`;
+      el.megaSetupBtn.disabled = scan.questionCount === 0;
+
+      el.subjectList.innerHTML = '';
+      scan.subjects.forEach(subject => {
+        const qCount = data.questions.filter(q => q.subjectId === subject.id).length;
+        const b = document.createElement('div');
+        b.className = 'subject-item' + (qCount === 0 ? ' disabled' : '');
+        b.innerHTML = `<div class="label">Certificación</div><div class="title">${subject.name}</div><div class="count">${qCount} Preguntas</div>`;
+        if (qCount > 0) b.addEventListener('click', () => { state.selectedSubjectId = subject.id; renderTopics(); });
+        el.subjectList.appendChild(b);
+      });
+    }
+
+    function openMegaSetup() {
+      const scan = scanCatalog();
+      el.megaScanLine.textContent = `Analizando ${scan.questionCount} preguntas de ${scan.subjectCount} materias.`;
+      renderCountRow(el.megaCountRow, scan.questionCount);
+      show('mega');
+    }
+
+    function renderTopics() {
+      show('topics');
+      state.selectedTopicIds = new Set();
+      const subject = data.subjects.find(s => s.id === state.selectedSubjectId);
+      const topics = data.topics.filter(t => t.subjectId === state.selectedSubjectId && t.active !== false);
+
+      el.topicTitle.textContent = subject ? subject.name : 'Tópicos';
+      el.topicList.innerHTML = '';
+
+      topics.forEach(topic => {
+        const qCount = data.questions.filter(q => q.topicId === topic.id).length;
+        const b = document.createElement('div');
+        b.className = 'subject-item' + (qCount === 0 ? ' disabled' : '');
+        b.innerHTML = `<div class="label">Módulo</div><div class="title">${topic.name}</div><div class="count">${qCount} Preguntas</div>`;
+        if (qCount > 0) b.addEventListener('click', () => {
+            if (state.selectedTopicIds.has(topic.id)) { if (state.selectedTopicIds.size > 1) state.selectedTopicIds.delete(topic.id); } 
+            else { state.selectedTopicIds.add(topic.id); }
+            Array.from(el.topicList.children).forEach((child, idx) => {
+    child.classList.toggle('selected', state.selectedTopicIds.has(topics[idx].id));
+});
+            updateTopicCount();
+        });
+        el.topicList.appendChild(b);
+      });
+
+      const first = topics.find(t => data.questions.some(q => q.topicId === t.id));
+      if (first) { state.selectedTopicIds.add(first.id); el.topicList.firstChild.classList.add('selected'); }
+      updateTopicCount();
+    }
+
+    function updateTopicCount() {
+        const filtered = data.questions.filter(q => q.subjectId === state.selectedSubjectId && state.selectedTopicIds.has(q.topicId));
+        renderCountRow(el.topicCountRow, filtered.length);
+    }
+
+    function beginQuizSession(mode, basePool) {
+      state.quizMode = mode;
+      const desired = Math.min(state.targetCount, basePool.length);
+      const randomized = shuffle(basePool).map(q => ({ ...q, options: shuffle(q.options) }));
+      state.quizQuestions = randomized.slice(0, desired);
+      state.outcomes = new Array(state.quizQuestions.length).fill(null);
+      state.attempted = new Array(state.quizQuestions.length).fill(false);
+      state.currentIndex = 0;
+      state.correctCount = 0;
+      state.answered = false;
+      show('quiz');
+      renderQuiz();
+    }
+
+    function startQuiz() {
+      const filtered = data.questions.filter(q => q.subjectId === state.selectedSubjectId && state.selectedTopicIds.has(q.topicId));
+      beginQuizSession('subject', filtered);
+    }
+
+    function renderQuiz() {
+      const q = state.quizQuestions[state.currentIndex];
+      const total = state.quizQuestions.length;
+      
+      el.progressText.textContent = `Pregunta ${state.currentIndex + 1} de ${total}`;
+      el.progressBar.style.width = `${((state.currentIndex + 1) / total) * 100}%`;
+      el.scoreText.textContent = String(state.correctCount);
+      
+      const topic = data.topics.find(t => t.id === q.topicId);
+      el.quizTopic.textContent = topic ? topic.name : '';
+      el.questionText.textContent = q.question;
+      
+      el.answers.innerHTML = '';
+      el.hintBox.classList.add('hidden');
+      el.explainBox.classList.add('hidden');
+      el.nextBtn.classList.add('hidden');
+      el.quizHelp.classList.remove('hidden');
+
+      q.options.forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'answer-opt';
+        b.textContent = opt;
+        b.onclick = () => {
+            if (state.answered) return;
+            state.answered = true;
+            const isCorrect = opt === q.answer;
+            state.outcomes[state.currentIndex] = isCorrect;
+            state.attempted[state.currentIndex] = true;
+            if (isCorrect) state.correctCount++;
+            
+            Array.from(el.answers.children).forEach(btn => {
+                if (btn.textContent === q.answer) btn.classList.add('ok');
+                else if (btn.textContent === opt) btn.classList.add('bad');
+                btn.disabled = true;
+            });
+
+            el.hintBox.innerHTML = `<strong>Pista:</strong> ${q.hint}`;
+            el.explainBox.innerHTML = `<strong>Explicación:</strong> ${q.explanation}`;
+            el.hintBox.classList.remove('hidden');
+            el.explainBox.classList.remove('hidden');
+            el.nextBtn.classList.remove('hidden');
+            el.quizHelp.classList.add('hidden');
+            el.scoreText.textContent = String(state.correctCount);
+        };
+        el.answers.appendChild(b);
+      });
+    }
+
+    function nextQuestion() {
+      if (state.currentIndex + 1 < state.quizQuestions.length) {
+        state.currentIndex++;
+        state.answered = false;
+        renderQuiz();
+      } else {
+        renderResult();
+      }
+    }
+
+    function renderResult() {
+      show('result');
+      const total = state.quizQuestions.length;
+      const pct = Math.round((state.correctCount / total) * 100);
+      const passed = pct >= (data.passPercent || 70);
+
+      el.resultBadge.className = 'badge ' + (passed ? 'ok' : 'no');
+      el.resultBadge.textContent = passed ? 'APROBADO' : 'NO APROBADO';
+      el.resultTitle.textContent = passed ? '¡Excelente trabajo!' : 'Sigue practicando';
+      el.resultSubtitle.textContent = `Has completado la evaluación de AWS con un ${pct}% de aciertos.`;
+      
+      el.resultCorrect.textContent = state.correctCount;
+      el.resultWrong.textContent = total - state.correctCount;
+      el.resultPct.textContent = pct + '%';
+
+      const agg = new Map();
+      state.quizQuestions.forEach((q, i) => {
+          if (!agg.has(q.topicId)) agg.set(q.topicId, { c:0, t:0 });
+          agg.get(q.topicId).t++;
+          if (state.outcomes[i]) agg.get(q.topicId).c++;
+      });
+
+      el.topicTableBody.innerHTML = '';
+      agg.forEach((v, k) => {
+          const topic = data.topics.find(t => t.id === k);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${topic ? topic.name : k}</td><td>${v.c}</td><td>${v.t}</td><td>${Math.round(v.c/v.t*100)}%</td>`;
+          el.topicTableBody.appendChild(tr);
+      });
+    }
+
+    // Event Listeners
+    el.megaSetupBtn.onclick = openMegaSetup;
+    el.megaBackBtn.onclick = renderSubjects;
+    el.megaStartBtn.onclick = () => beginQuizSession('mega', getAllQuestionsPool());
+    el.backToSubjectsBtn.onclick = renderSubjects;
+    el.startQuizBtn.onclick = startQuiz;
+    el.nextBtn.onclick = nextQuestion;
+    el.homeBtn.onclick = renderSubjects;
+    el.finishQuizBtn.onclick = () => { if(confirm('¿Finalizar ahora?')) renderResult(); };
+    el.resultHomeBtn.onclick = renderSubjects;
+    el.resultRestartBtn.onclick = () => beginQuizSession(state.quizMode, state.quizQuestions);
+
+    // Init
+    renderSubjects();
+  </script>
+</body>
+</html>
