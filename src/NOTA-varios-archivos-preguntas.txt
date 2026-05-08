@@ -1,0 +1,25 @@
+COMO SEGUIR ANADIENDO PREGUNTAS SIN LLENAR data-editable.js
+
+1) Deja data-editable.js como esta (no borres nada).
+
+2) Usa el archivo:
+   trivia-html/preguntas-extra-1.js
+
+   Dentro del array en b.questions.concat([ ... ]) pega mas preguntas con el mismo formato
+   que una entrada en "questions" del JSON (subjectId, topicId, question, options, answer, hint, explanation).
+
+3) index.html ya carga en este orden:
+   - data-editable.js
+   - preguntas-extra-1.js
+
+   El segundo archivo SOLO concatena al objeto global TRIVIA_DATA.
+
+4) Si necesitas OTRO archivo porque tambien se llena (preguntas-extra-2.js):
+   - Copia preguntas-extra-1.js a preguntas-extra-2.js y vacia el concat o pon mas preguntas.
+   - En index.html, justo despues de preguntas-extra-1.js, anade:
+     <script src="./preguntas-extra-2.js"></script>
+
+5) Materias/topicos nuevos:
+   - Puedes anadirlos en data-editable.js (recomendado) O
+   - En preguntas-extra-1.js con b.subjects.push(...) y b.topics.push(...) ANTES del concat de questions,
+     usando ids unicos que luego uses en las preguntas.

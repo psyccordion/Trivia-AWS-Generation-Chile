@@ -1,0 +1,13 @@
+﻿{
+  topic: 1,
+  question: "Aqui va el enunciado de la pregunta",
+  options: [
+    "Opcion A",
+    "Opcion B",
+    "Opcion C",
+    "Opcion D"
+  ],
+  answer: "Opcion B",
+  hint: "Pista corta para guiar al usuario",
+  explanation: "Explicacion breve de por que la respuesta correcta es Opcion B"
+},

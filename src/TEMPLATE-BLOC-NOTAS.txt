@@ -1,0 +1,44 @@
+﻿TEMPLATE RAPIDO (EDITAR data-editable.js EN BLOC DE NOTAS)
+
+Archivo:
+C:\Users\PC\Downloads\AWS trivia\trivia-html\data-editable.js
+
+1) NUEVA MATERIA (subjects)
+{
+  id: 'devops',
+  name: 'AWS DevOps Engineer',
+  active: true
+}
+
+2) NUEVO TOPICO (topics)
+{
+  id: 'devops-0',
+  subjectId: 'devops',
+  name: '0. CI/CD',
+  active: true
+}
+
+3) NUEVA PREGUNTA (questions)
+{
+  subjectId: 'devops',
+  topicId: 'devops-0',
+  question: 'Aqui va la pregunta',
+  options: [
+    'Opcion A',
+    'Opcion B',
+    'Opcion C',
+    'Opcion D'
+  ],
+  answer: 'Opcion B',
+  hint: 'Pista corta',
+  explanation: 'Explicacion breve'
+}
+
+4) PUNTAJE MINIMO
+passPercent: 70
+
+REGLAS IMPORTANTES
+- answer debe coincidir EXACTO con una opcion.
+- topicId debe existir en topics.
+- subjectId debe existir en subjects.
+- Si pones active: false, se oculta ese item.
